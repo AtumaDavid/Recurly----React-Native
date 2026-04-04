@@ -3,6 +3,8 @@ import { useFonts } from 'expo-font';
 import { SplashScreen, Stack } from 'expo-router';
 import { useEffect } from 'react';
 
+SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     'Raleway-Black': require('../assets/fonts/Raleway-Black.ttf'),
@@ -23,12 +25,10 @@ export default function RootLayout() {
     'Raleway-MediumItalic': require('../assets/fonts/Raleway-MediumItalic.ttf'),
     'Raleway-SemiBold': require('../assets/fonts/Raleway-SemiBold.ttf'),
     'Raleway-SemiBoldItalic': require('../assets/fonts/Raleway-SemiBoldItalic.ttf'),
-    'Raleway-Italic-Variable': require('../assets/fonts/Raleway-Italic-VariableFont_wght.ttf'),
-    'Raleway-Variable': require('../assets/fonts/Raleway-VariableFont_wght.ttf'),
   });
 
   useEffect(() => {
-    if (!fontsLoaded) {
+    if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);

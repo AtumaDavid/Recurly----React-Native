@@ -36,10 +36,6 @@ A React Native mobile application built with Expo for subscription management. T
 
 2. **Clone the repository**:
 
-   ```bash
-   git clone <repository-url># Welcome to your Expo app 👋
-   ```
-
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Get started
@@ -89,12 +85,9 @@ Join our community of developers creating universal apps.
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
 
-  cd recurly
-
-  ```
-
-
-  ```
+```bash
+cd recurly
+```
 
 1. **Install dependencies**:
 
@@ -194,12 +187,6 @@ Join our community of developers creating universal apps.
 6. Submit a pull request
 
 ## License
-
-[Add your license here]
-
-## Support
-
-For support or questions, please [add contact information or issue tracker link].
 
 [Add your license here]
 
