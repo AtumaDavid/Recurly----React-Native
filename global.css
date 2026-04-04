@@ -17,6 +17,25 @@
   --color-destructive: #dc2626;
   --color-subscription: #8fd1bd;
 
+  --font-sans: 'Raleway-Regular';
+  --font-sans-italic: 'Raleway-Italic';
+  --font-sans-thin: 'Raleway-Thin';
+  --font-sans-thin-italic: 'Raleway-ThinItalic';
+  --font-sans-extra-light: 'Raleway-ExtraLight';
+  --font-sans-extra-light-italic: 'Raleway-ExtraLightItalic';
+  --font-sans-light: 'Raleway-Light';
+  --font-sans-light-italic: 'Raleway-LightItalic';
+  --font-sans-medium: 'Raleway-Medium';
+  --font-sans-medium-italic: 'Raleway-MediumItalic';
+  --font-sans-semibold: 'Raleway-SemiBold';
+  --font-sans-semibold-italic: 'Raleway-SemiBoldItalic';
+  --font-sans-bold: 'Raleway-Bold';
+  --font-sans-bold-italic: 'Raleway-BoldItalic';
+  --font-sans-extrabold: 'Raleway-ExtraBold';
+  --font-sans-extrabold-italic: 'Raleway-ExtraBoldItalic';
+  --font-sans-black: 'Raleway-Black';
+  --font-sans-black-italic: 'Raleway-BlackItalic';
+
   --spacing-0: 0px;
   --spacing-1: 4px;
   --spacing-2: 8px;
@@ -36,13 +55,10 @@
   --spacing-20: 80px;
   --spacing-24: 96px;
   --spacing-30: 120px;
+}
 
-  --font-sans: sans-regular;
-  --font-sans-light: sans-light;
-  --font-sans-medium: sans-medium;
-  --font-sans-semibold: sans-semibold;
-  --font-sans-bold: sans-bold;
-  --font-sans-extrabold: sans-extrabold;
+:root {
+  font-family: var(--font-sans), system-ui, sans-serif;
 }
 
 @layer components {
