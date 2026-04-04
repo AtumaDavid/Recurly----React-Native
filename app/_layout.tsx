@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     'Raleway-Black': require('../assets/fonts/Raleway-Black.ttf'),
     'Raleway-BlackItalic': require('../assets/fonts/Raleway-BlackItalic.ttf'),
     'Raleway-Bold': require('../assets/fonts/Raleway-Bold.ttf'),
@@ -28,12 +28,12 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontError) {
     return null;
   }
 
