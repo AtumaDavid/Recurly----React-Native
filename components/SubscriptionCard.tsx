@@ -86,7 +86,7 @@ export default function SubscriptionCard({
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {startDate?.trim() || 'N/A'}
+                  {formatSubscriptionDateTime(startDate)}
                 </Text>
               </View>
             </View>
@@ -99,7 +99,7 @@ export default function SubscriptionCard({
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {formatSubscriptionDateTime(renewalDate || 'N/A')}
+                  {formatSubscriptionDateTime(renewalDate)}
                 </Text>
               </View>
             </View>

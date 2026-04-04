@@ -66,13 +66,13 @@ export default function App() {
                 )}
                 ListEmptyComponent={
                   <Text className="home-empty-state">
-                    No upcoming Renewals yet
+                    No upcoming renewals yet
                   </Text>
                 }
               />
             </View>
 
-            <ListHeading title="All Subscription" />
+            <ListHeading title="All Subscriptions" />
           </View>
         )}
         style={{ flex: 1 }}
