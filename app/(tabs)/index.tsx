@@ -11,7 +11,7 @@ import { colors } from '@/constants/theme';
 import { formatCurrency } from '@/lib/utils';
 import { useUser } from '@clerk/expo';
 import dayjs from 'dayjs';
-import { useRouter } from 'expo-router';
+// import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   FlatList,
@@ -24,7 +24,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Home() {
-  const router = useRouter();
+  // const router = useRouter();
   const { user } = useUser();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

@@ -41,11 +41,29 @@ export default function SignIn() {
   const handleSignIn = async () => {
     const { error } = await signIn.password({ identifier: email, password });
     if (error) return;
-    await signIn.finalize({
-      navigate: () => {
-        router.replace('/(tabs)' as Href);
-      },
-    });
+    // await signIn.finalize({
+    //   navigate: () => {
+    //     router.replace('/(tabs)' as Href);
+    //   },
+    // });
+    if (signIn.status === 'complete') {
+      await signIn.finalize({
+        navigate: () => {
+          router.replace('/(tabs)' as Href);
+        },
+      });
+      return;
+    }
+
+    if (signIn.status === 'needs_client_trust') {
+      await signIn.mfa.sendEmailCode();
+      return;
+    }
+
+    if (signIn.status === 'needs_second_factor') {
+      // render the follow-up verification step here
+      return;
+    }
   };
 
   return (
