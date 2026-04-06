@@ -1,10 +1,10 @@
+import { colors } from '@/constants/theme';
 import {
   formatCurrency,
   formatStatusLabel,
   formatSubscriptionDateTime,
 } from '@/lib/utils';
-import { clsx } from 'clsx';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function SubscriptionCard({
   name,
@@ -24,18 +24,24 @@ export default function SubscriptionCard({
 }: SubscriptionCardProps) {
   return (
     <Pressable
-      className={clsx('sub-card', expanded ? 'sub-card-expanded' : 'bg-card')}
-      style={!expanded && color ? { backgroundColor: color } : undefined}
+      style={[
+        s.card,
+        expanded
+          ? s.cardExpanded
+          : color
+            ? { backgroundColor: color }
+            : { backgroundColor: colors.card },
+      ]}
       onPress={onPress}
     >
-      <View className="sub-head">
-        <View className="sub-main">
-          <Image source={icon} className="sub-icon" resizeMode="contain" />
-          <View className="sub-copy">
-            <Text className="sub-title" numberOfLines={1}>
+      <View style={s.head}>
+        <View style={s.main}>
+          <Image source={icon} style={s.icon} resizeMode="contain" />
+          <View style={s.copy}>
+            <Text style={s.title} numberOfLines={1}>
               {name}
             </Text>
-            <Text className="sub-meta" numberOfLines={1} ellipsizeMode="tail">
+            <Text style={s.meta} numberOfLines={1} ellipsizeMode="tail">
               {category?.trim() ||
                 plan?.trim() ||
                 (renewalDate ? formatSubscriptionDateTime(renewalDate) : '')}
@@ -43,75 +49,55 @@ export default function SubscriptionCard({
           </View>
         </View>
 
-        <View className="sub-price-box">
-          <Text className="sub-price">{formatCurrency(price, currency)}</Text>
-          <Text className="sub-billing">{billing}</Text>
+        <View style={s.priceBox}>
+          <Text style={s.price}>{formatCurrency(price, currency)}</Text>
+          <Text style={s.billing}>{billing}</Text>
         </View>
       </View>
 
       {expanded && (
-        <View className="sub-bdy">
-          <View className="sub-details">
-            <View className="sub-row">
-              <View className="sub-row-copy">
-                <Text className="sub-label">Payment:</Text>
-                <Text
-                  className="sub-value"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
+        <View style={s.body}>
+          <View style={s.details}>
+            <View style={s.row}>
+              <View style={s.rowCopy}>
+                <Text style={s.label}>Payment:</Text>
+                <Text style={s.value} numberOfLines={1} ellipsizeMode="tail">
                   {paymentMethod?.trim() || 'N/A'}
                 </Text>
               </View>
             </View>
 
-            <View className="sub-row">
-              <View className="sub-row-copy">
-                <Text className="sub-label">Category:</Text>
-                <Text
-                  className="sub-value"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
+            <View style={s.row}>
+              <View style={s.rowCopy}>
+                <Text style={s.label}>Category:</Text>
+                <Text style={s.value} numberOfLines={1} ellipsizeMode="tail">
                   {category?.trim() || plan?.trim() || 'N/A'}
                 </Text>
               </View>
             </View>
 
-            <View className="sub-row">
-              <View className="sub-row-copy">
-                <Text className="sub-label">Started:</Text>
-                <Text
-                  className="sub-value"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
+            <View style={s.row}>
+              <View style={s.rowCopy}>
+                <Text style={s.label}>Started:</Text>
+                <Text style={s.value} numberOfLines={1} ellipsizeMode="tail">
                   {formatSubscriptionDateTime(startDate)}
                 </Text>
               </View>
             </View>
 
-            <View className="sub-row">
-              <View className="sub-row-copy">
-                <Text className="sub-label">Renewal Date:</Text>
-                <Text
-                  className="sub-value"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
+            <View style={s.row}>
+              <View style={s.rowCopy}>
+                <Text style={s.label}>Renewal Date:</Text>
+                <Text style={s.value} numberOfLines={1} ellipsizeMode="tail">
                   {formatSubscriptionDateTime(renewalDate)}
                 </Text>
               </View>
             </View>
 
-            <View className="sub-row">
-              <View className="sub-row-copy">
-                <Text className="sub-label">Status:</Text>
-                <Text
-                  className="sub-value"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
+            <View style={s.row}>
+              <View style={s.rowCopy}>
+                <Text style={s.label}>Status:</Text>
+                <Text style={s.value} numberOfLines={1} ellipsizeMode="tail">
                   {status ? formatStatusLabel(status) : 'N/A'}
                 </Text>
               </View>
@@ -122,3 +108,60 @@ export default function SubscriptionCard({
     </Pressable>
   );
 }
+
+const s = StyleSheet.create({
+  card: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
+  },
+  cardExpanded: { backgroundColor: colors.subscription },
+  head: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
+  main: {
+    minWidth: 0,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  icon: { width: 64, height: 64, borderRadius: 8 },
+  copy: { minWidth: 0, flex: 1 },
+  title: {
+    marginBottom: 4,
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  meta: { fontSize: 14, fontWeight: '600', color: colors.mutedForeground },
+  priceBox: { marginLeft: 12, flexShrink: 0, alignItems: 'flex-end' },
+  price: {
+    marginBottom: 4,
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  billing: { fontSize: 14, fontWeight: '500', color: colors.mutedForeground },
+  body: { marginTop: 24, gap: 16 },
+  details: { gap: 24 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  rowCopy: {
+    minWidth: 0,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  label: {
+    flexShrink: 0,
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.mutedForeground,
+  },
+  value: { flex: 1, fontWeight: '700', color: colors.primary },
+});

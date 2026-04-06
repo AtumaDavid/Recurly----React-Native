@@ -1,41 +1,40 @@
-import '@/global.css';
-import { useFonts } from 'expo-font';
-import { SplashScreen, Stack } from 'expo-router';
-import { useEffect } from 'react';
+import { ClerkProvider, useAuth } from '@clerk/expo';
+import { tokenCache } from '@clerk/expo/token-cache';
+import { Stack } from 'expo-router';
+import { Text, View } from 'react-native';
 
-SplashScreen.preventAutoHideAsync();
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
-export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({
-    'Raleway-Black': require('../assets/fonts/Raleway-Black.ttf'),
-    'Raleway-BlackItalic': require('../assets/fonts/Raleway-BlackItalic.ttf'),
-    'Raleway-Bold': require('../assets/fonts/Raleway-Bold.ttf'),
-    'Raleway-BoldItalic': require('../assets/fonts/Raleway-BoldItalic.ttf'),
-    'Raleway-ExtraBold': require('../assets/fonts/Raleway-ExtraBold.ttf'),
-    'Raleway-ExtraBoldItalic': require('../assets/fonts/Raleway-ExtraBoldItalic.ttf'),
-    'Raleway-ExtraLight': require('../assets/fonts/Raleway-ExtraLight.ttf'),
-    'Raleway-ExtraLightItalic': require('../assets/fonts/Raleway-ExtraLightItalic.ttf'),
-    'Raleway-Regular': require('../assets/fonts/Raleway-Regular.ttf'),
-    'Raleway-Italic': require('../assets/fonts/Raleway-Italic.ttf'),
-    'Raleway-Thin': require('../assets/fonts/Raleway-Thin.ttf'),
-    'Raleway-ThinItalic': require('../assets/fonts/Raleway-ThinItalic.ttf'),
-    'Raleway-Light': require('../assets/fonts/Raleway-Light.ttf'),
-    'Raleway-LightItalic': require('../assets/fonts/Raleway-LightItalic.ttf'),
-    'Raleway-Medium': require('../assets/fonts/Raleway-Medium.ttf'),
-    'Raleway-MediumItalic': require('../assets/fonts/Raleway-MediumItalic.ttf'),
-    'Raleway-SemiBold': require('../assets/fonts/Raleway-SemiBold.ttf'),
-    'Raleway-SemiBoldItalic': require('../assets/fonts/Raleway-SemiBoldItalic.ttf'),
-  });
+if (!publishableKey) {
+  throw new Error('Add your Clerk Publishable Key to the .env file');
+}
 
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError]);
+function RootLayoutContent() {
+  const { isLoaded: authLoaded } = useAuth();
+  console.log('[Layout] authLoaded:', authLoaded);
 
-  if (!fontsLoaded && !fontError) {
-    return null;
+  if (!authLoaded) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#ffffff',
+        }}
+      >
+        <Text style={{ color: '#081126' }}>Loading...</Text>
+      </View>
+    );
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;
+}
+
+export default function RootLayout() {
+  return (
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+      <RootLayoutContent />
+    </ClerkProvider>
+  );
 }

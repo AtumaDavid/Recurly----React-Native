@@ -1,23 +1,29 @@
 import { tabs } from '@/constants/data';
 import { colors, components } from '@/constants/theme';
-import { clsx } from 'clsx';
-import { Tabs } from 'expo-router';
-import { Image, View } from 'react-native';
+import { useAuth } from '@clerk/expo';
+import { Redirect, Tabs } from 'expo-router';
+import { Image, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const tabBar = components.tabBar;
 
 export default function TabLayout() {
+  const { isSignedIn, isLoaded } = useAuth();
   const insets = useSafeAreaInsets();
+
+  if (!isLoaded) {
+    return null;
+  }
+
+  if (!isSignedIn) {
+    return <Redirect href="/(auth)/sign-in" />;
+  }
+
   const TabIcon = ({ focused, icon }: TabIconProps) => {
     return (
-      <View className="tabs-icon">
-        <View className={clsx('tabs-pill', focused && 'tabs-active')}>
-          <Image
-            source={icon}
-            // resizeMode='contain'
-            className="tabs-glyph"
-          />
+      <View style={ts.icon}>
+        <View style={[ts.pill, focused && ts.active]}>
+          <Image source={icon} style={ts.glyph} />
         </View>
       </View>
     );
@@ -69,3 +75,22 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const ts = StyleSheet.create({
+  icon: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pill: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 24,
+    backgroundColor: 'transparent',
+  },
+  active: { backgroundColor: colors.accent },
+  glyph: { width: 24, height: 24 },
+});
