@@ -3,7 +3,7 @@ import BrandBlock from '@/components/auth/BrandBlock';
 import { colors } from '@/constants/theme';
 import { useSignUp } from '@clerk/expo';
 import { Ionicons } from '@expo/vector-icons';
-import { type Href, Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -18,7 +18,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SignUp() {
   const { signUp, errors, fetchStatus } = useSignUp();
-  const router = useRouter();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,6 +28,9 @@ export default function SignUp() {
   const [passwordMatchError, setPasswordMatchError] = useState('');
 
   const isFetching = fetchStatus === 'fetching';
+  const createAccountButtonLabel = isFetching ? 'Loading...' : 'Create account';
+  const verifyButtonLabel = isFetching ? 'Loading...' : 'Verify account';
+  const resendButtonLabel = isFetching ? 'Loading...' : 'Resend code';
 
   if (!signUp) {
     return (
@@ -61,11 +63,7 @@ export default function SignUp() {
   const handleVerify = async () => {
     await signUp.verifications.verifyEmailCode({ code });
     if (signUp.status === 'complete') {
-      await signUp.finalize({
-        navigate: () => {
-          router.replace('/(tabs)' as Href);
-        },
-      });
+      await signUp.finalize();
     }
   };
 
@@ -113,14 +111,14 @@ export default function SignUp() {
                   onPress={handleVerify}
                   disabled={!code || isFetching}
                 >
-                  <Text style={s.buttonText}>Verify account</Text>
+                  <Text style={s.buttonText}>{verifyButtonLabel}</Text>
                 </Pressable>
                 <Pressable
                   style={s.secondaryButton}
                   onPress={() => signUp.verifications.sendEmailCode()}
                   disabled={isFetching}
                 >
-                  <Text style={s.secondaryButtonText}>Resend code</Text>
+                  <Text style={s.secondaryButtonText}>{resendButtonLabel}</Text>
                 </Pressable>
               </View>
             </View>
@@ -219,7 +217,7 @@ export default function SignUp() {
                 onPress={handleSignUp}
                 disabled={!email || !password || !confirmPassword || isFetching}
               >
-                <Text style={s.buttonText}>Create account</Text>
+                <Text style={s.buttonText}>{createAccountButtonLabel}</Text>
               </Pressable>
             </View>
           </View>
