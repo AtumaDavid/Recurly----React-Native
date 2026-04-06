@@ -4,100 +4,160 @@ import UpcomingSubscriptionCard from '@/components/UpcomingSubscriptionCard';
 import {
   HOME_BALANCE,
   HOME_SUBSCRIPTIONS,
-  HOME_USER,
   UPCOMING_SUBSCRIPTIONS,
 } from '@/constants/data';
 import { icons } from '@/constants/icons';
-import images from '@/constants/images';
-import '@/global.css';
+import { colors } from '@/constants/theme';
 import { formatCurrency } from '@/lib/utils';
+import { useUser } from '@clerk/expo';
 import dayjs from 'dayjs';
-import { styled } from 'nativewind';
-import { useState } from 'react';
-import { FlatList, Image, Text, View } from 'react-native';
-import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
+// import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  FlatList,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const SafeAreaView = styled(RNSafeAreaView);
+export default function Home() {
+  // const router = useRouter();
+  const { user } = useUser();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-export default function App() {
-  const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<
-    string | null
-  >(null);
+  const displayName =
+    user?.firstName ?? user?.emailAddresses?.[0]?.emailAddress ?? 'there';
+
   return (
-    <SafeAreaView className="flex-1 bg-background p-5">
-      {/* <View className="flex-1"> */}
+    <SafeAreaView style={s.safe}>
       <FlatList
-        ListHeaderComponent={() => (
-          <View>
-            <View className="home-header">
-              <View className="home-header">
-                <Image
-                  source={images.avatar}
-                  className="home-avatar"
-                  resizeMode="contain"
-                />
-                <Text className="home-user-name">{HOME_USER.name}</Text>
-              </View>
-
-              <Image source={icons.add} className="home-add-icon" />
-            </View>
-
-            <View className="home-balance-card">
-              <Text className="home-balance-label">Balance</Text>
-              <View className="home-balance-row">
-                <Text className="home-balance-amount">
-                  {formatCurrency(HOME_BALANCE.amount)}
-                </Text>
-                <Text className="home-balance-date">
-                  {dayjs(HOME_BALANCE.nextRenewalDate).format('MM/DD/YYYY')}
-                </Text>
-              </View>
-            </View>
-
-            <View className="mb-5">
-              <ListHeading title="Upcoming Subscriptions" />
-              <FlatList
-                data={UPCOMING_SUBSCRIPTIONS}
-                keyExtractor={(item) => item.id}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <UpcomingSubscriptionCard {...item} />
-                )}
-                ListEmptyComponent={
-                  <Text className="home-empty-state">
-                    No upcoming renewals yet
-                  </Text>
-                }
-              />
-            </View>
-
-            <ListHeading title="All Subscriptions" />
-          </View>
-        )}
-        style={{ flex: 1 }}
         data={HOME_SUBSCRIPTIONS}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <SubscriptionCard
-            {...item}
-            expanded={expandedSubscriptionId === item.id}
-            onPress={() =>
-              setExpandedSubscriptionId(
-                item.id === expandedSubscriptionId ? null : item.id
-              )
-            }
-          />
-        )}
-        extraData={expandedSubscriptionId}
-        ItemSeparatorComponent={() => <View className="h-4" />}
-        ListEmptyComponent={
-          <Text className="home-empty-state">No subscriptions available</Text>
+        contentContainerStyle={s.list}
+        ListHeaderComponent={
+          <>
+            {/* Header: avatar + name on left, plus icon on right */}
+            <View style={s.header}>
+              <View style={s.userRow}>
+                {user?.imageUrl ? (
+                  <Image source={{ uri: user.imageUrl }} style={s.avatar} />
+                ) : (
+                  <View style={s.avatarFallback}>
+                    <Text style={s.avatarInitial}>
+                      {displayName.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+                <Text style={s.userName} numberOfLines={1}>
+                  {displayName}
+                </Text>
+              </View>
+              <Pressable onPress={() => {}} hitSlop={8}>
+                <Image
+                  source={icons.add}
+                  style={s.addIcon}
+                  resizeMode="contain"
+                />
+              </Pressable>
+            </View>
+
+            {/* Balance card */}
+            <View style={s.balanceCard}>
+              <Text style={s.balanceLabel}>Current Balance</Text>
+              <View style={s.balanceRow}>
+                <Text style={s.balanceAmount}>
+                  {formatCurrency(HOME_BALANCE.amount)}
+                </Text>
+                <Text style={s.balanceDate}>
+                  {dayjs(HOME_BALANCE.nextRenewalDate).format('MMM D, YYYY')}
+                </Text>
+              </View>
+            </View>
+
+            {/* Upcoming */}
+            <ListHeading title="Upcoming Renewals" />
+            <FlatList
+              data={UPCOMING_SUBSCRIPTIONS}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item }) => <UpcomingSubscriptionCard {...item} />}
+            />
+
+            {/* All subscriptions heading */}
+            <ListHeading title="Your Subscriptions" />
+          </>
         }
-        contentContainerClassName="pb-30"
+        renderItem={({ item }) => (
+          <View style={{ marginBottom: 12 }}>
+            <SubscriptionCard
+              {...item}
+              expanded={expandedId === item.id}
+              onPress={() =>
+                setExpandedId((prev) => (prev === item.id ? null : item.id))
+              }
+            />
+          </View>
+        )}
       />
-      {/* </View> */}
     </SafeAreaView>
   );
 }
+
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.background },
+  list: { paddingHorizontal: 20, paddingBottom: 120 },
+  header: {
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  userRow: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  avatar: { width: 64, height: 64, borderRadius: 32 },
+  avatarFallback: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: { fontSize: 24, fontWeight: '700', color: '#ffffff' },
+  userName: {
+    flex: 1,
+    marginLeft: 16,
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  addIcon: { width: 48, height: 48 },
+  balanceCard: {
+    marginVertical: 10,
+    minHeight: 200,
+    justifyContent: 'space-between',
+    gap: 20,
+    borderBottomLeftRadius: 32,
+    borderTopRightRadius: 32,
+    borderBottomRightRadius: 0,
+    borderTopLeftRadius: 0,
+    backgroundColor: colors.accent,
+    padding: 24,
+  },
+  balanceLabel: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.8)',
+  },
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  balanceAmount: { fontSize: 36, fontWeight: '800', color: '#ffffff' },
+  balanceDate: { fontSize: 20, fontWeight: '500', color: '#ffffff' },
+});
