@@ -11,7 +11,7 @@ if (!publishableKey) {
 
 function RootLayoutContent() {
   const { isLoaded: authLoaded } = useAuth();
-  console.log('[Layout] authLoaded:', authLoaded);
+  // console.log('[Layout] authLoaded:', authLoaded);
 
   if (!authLoaded) {
     return (

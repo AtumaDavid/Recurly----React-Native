@@ -3,7 +3,7 @@ import BrandBlock from '@/components/auth/BrandBlock';
 import { colors } from '@/constants/theme';
 import { useSignIn } from '@clerk/expo';
 import { Ionicons } from '@expo/vector-icons';
-import { type Href, Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -18,13 +18,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SignIn() {
   const { signIn, errors, fetchStatus } = useSignIn();
-  const router = useRouter();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   const isFetching = fetchStatus === 'fetching';
+  const signInButtonLabel = isFetching ? 'Loading...' : 'Sign in';
 
   if (!signIn) {
     return (
@@ -47,11 +47,7 @@ export default function SignIn() {
     //   },
     // });
     if (signIn.status === 'complete') {
-      await signIn.finalize({
-        navigate: () => {
-          router.replace('/(tabs)' as Href);
-        },
-      });
+      await signIn.finalize();
       return;
     }
 
@@ -125,7 +121,7 @@ export default function SignIn() {
                 onPress={handleSignIn}
                 disabled={!email || !password || isFetching}
               >
-                <Text style={s.buttonText}>Sign in</Text>
+                <Text style={s.buttonText}>{signInButtonLabel}</Text>
               </Pressable>
             </View>
           </View>
