@@ -189,7 +189,10 @@ export default function SignIn() {
                   <AuthField
                     label="Email"
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={(value) => {
+                      setEmail(value);
+                      if (localError) setLocalError(null);
+                    }}
                     placeholder="Enter your email"
                     autoCapitalize="none"
                     keyboardType="email-address"
@@ -199,7 +202,10 @@ export default function SignIn() {
                   <AuthField
                     label="Password"
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={(value) => {
+                      setPassword(value);
+                      if (localError) setLocalError(null);
+                    }}
                     placeholder="Enter your password"
                     secureTextEntry={!passwordVisible}
                     autoComplete="current-password"
@@ -219,13 +225,19 @@ export default function SignIn() {
                       </Pressable>
                     }
                   />
+                  {!!localError && (
+                    <Text style={s.localError}>{localError}</Text>
+                  )}
                 </>
               ) : (
                 <>
                   <AuthField
                     label="Verification Code"
                     value={verificationCode}
-                    onChangeText={setVerificationCode}
+                    onChangeText={(value) => {
+                      setVerificationCode(value);
+                      if (localError) setLocalError(null);
+                    }}
                     placeholder="Enter code"
                     autoCapitalize="none"
                     keyboardType="number-pad"
@@ -331,6 +343,12 @@ const s = StyleSheet.create({
   },
   buttonDisabled: { backgroundColor: 'rgba(234, 122, 83, 0.45)' },
   buttonText: { fontSize: 16, fontWeight: '700', color: colors.primary },
+  localError: {
+    marginTop: -6,
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.destructive,
+  },
   secondaryButton: {
     alignItems: 'center',
     borderRadius: 16,
