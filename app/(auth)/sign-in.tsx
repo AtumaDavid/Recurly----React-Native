@@ -16,15 +16,29 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+type VerificationStep = 'credentials' | 'verify';
+type VerificationStrategy = 'email_code' | 'phone_code' | null;
+
 export default function SignIn() {
   const { signIn, errors, fetchStatus } = useSignIn();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [verificationStep, setVerificationStep] =
+    useState<VerificationStep>('credentials');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationStrategy, setVerificationStrategy] =
+    useState<VerificationStrategy>(null);
+  const [verificationPrompt, setVerificationPrompt] = useState('');
+  const [localError, setLocalError] = useState<string | null>(null);
 
   const isFetching = fetchStatus === 'fetching';
-  const signInButtonLabel = isFetching ? 'Loading...' : 'Sign in';
+  const signInButtonLabel = isFetching
+    ? 'Loading...'
+    : verificationStep === 'verify'
+      ? 'Verify code'
+      : 'Sign in';
 
   if (!signIn) {
     return (
@@ -39,26 +53,112 @@ export default function SignIn() {
   }
 
   const handleSignIn = async () => {
+    setLocalError(null);
     const { error } = await signIn.password({ identifier: email, password });
     if (error) return;
-    // await signIn.finalize({
-    //   navigate: () => {
-    //     router.replace('/(tabs)' as Href);
-    //   },
-    // });
+
     if (signIn.status === 'complete') {
       await signIn.finalize();
       return;
     }
 
-    if (signIn.status === 'needs_client_trust') {
-      await signIn.mfa.sendEmailCode();
+    if (
+      signIn.status === 'needs_client_trust' ||
+      signIn.status === 'needs_second_factor'
+    ) {
+      const emailCodeFactor = signIn.supportedSecondFactors.find(
+        (factor) => factor.strategy === 'email_code'
+      );
+      const phoneCodeFactor = signIn.supportedSecondFactors.find(
+        (factor) => factor.strategy === 'phone_code'
+      );
+
+      if (emailCodeFactor) {
+        const { error: sendError } = await signIn.mfa.sendEmailCode();
+        if (sendError) {
+          setLocalError('Unable to send verification code. Try again.');
+          return;
+        }
+
+        setVerificationStrategy('email_code');
+        setVerificationPrompt(
+          'Enter the verification code sent to your email.'
+        );
+        setVerificationStep('verify');
+        return;
+      }
+
+      if (phoneCodeFactor) {
+        const { error: sendError } = await signIn.mfa.sendPhoneCode();
+        if (sendError) {
+          setLocalError('Unable to send verification code. Try again.');
+          return;
+        }
+
+        setVerificationStrategy('phone_code');
+        setVerificationPrompt(
+          'Enter the verification code sent to your phone.'
+        );
+        setVerificationStep('verify');
+        return;
+      }
+
+      setLocalError('No supported verification method is available.');
+      return;
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!verificationCode.trim()) {
+      setLocalError('Verification code is required.');
       return;
     }
 
-    if (signIn.status === 'needs_second_factor') {
-      // render the follow-up verification step here
+    setLocalError(null);
+
+    if (verificationStrategy === 'phone_code') {
+      const { error } = await signIn.mfa.verifyPhoneCode({
+        code: verificationCode.trim(),
+      });
+      if (error) return;
+    } else {
+      const { error } = await signIn.mfa.verifyEmailCode({
+        code: verificationCode.trim(),
+      });
+      if (error) return;
+    }
+
+    if (signIn.status === 'complete') {
+      await signIn.finalize();
       return;
+    }
+
+    setLocalError('Verification incomplete. Please try again.');
+  };
+
+  const handlePrimaryAction = async () => {
+    if (verificationStep === 'verify') {
+      await handleVerifyCode();
+      return;
+    }
+
+    await handleSignIn();
+  };
+
+  const handleResendCode = async () => {
+    setLocalError(null);
+
+    if (verificationStrategy === 'phone_code') {
+      const { error } = await signIn.mfa.sendPhoneCode();
+      if (error) {
+        setLocalError('Unable to resend code. Please try again.');
+      }
+      return;
+    }
+
+    const { error } = await signIn.mfa.sendEmailCode();
+    if (error) {
+      setLocalError('Unable to resend code. Please try again.');
     }
   };
 
@@ -77,60 +177,118 @@ export default function SignIn() {
           <View style={{ marginTop: 32, alignItems: 'center' }}>
             <Text style={[s.title, { textAlign: 'center' }]}>Welcome back</Text>
             <Text style={s.subtitle}>
-              Sign in to continue managing your subscriptions
+              {verificationStep === 'verify'
+                ? verificationPrompt || 'Verify your sign-in to continue'
+                : 'Sign in to continue managing your subscriptions'}
             </Text>
           </View>
           <View style={s.card}>
             <View style={s.form}>
-              <AuthField
-                label="Email"
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Enter your email"
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoComplete="email"
-                error={errors?.fields?.identifier?.message}
-              />
-              <AuthField
-                label="Password"
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter your password"
-                secureTextEntry={!passwordVisible}
-                autoComplete="current-password"
-                error={errors?.fields?.password?.message}
-                rightElement={
+              {verificationStep === 'credentials' ? (
+                <>
+                  <AuthField
+                    label="Email"
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Enter your email"
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    autoComplete="email"
+                    error={errors?.fields?.identifier?.message}
+                  />
+                  <AuthField
+                    label="Password"
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="Enter your password"
+                    secureTextEntry={!passwordVisible}
+                    autoComplete="current-password"
+                    error={errors?.fields?.password?.message}
+                    rightElement={
+                      <Pressable
+                        onPress={() => setPasswordVisible((v) => !v)}
+                        hitSlop={8}
+                      >
+                        <Ionicons
+                          name={
+                            passwordVisible ? 'eye-off-outline' : 'eye-outline'
+                          }
+                          size={20}
+                          color="rgba(8,17,38,0.4)"
+                        />
+                      </Pressable>
+                    }
+                  />
+                </>
+              ) : (
+                <>
+                  <AuthField
+                    label="Verification Code"
+                    value={verificationCode}
+                    onChangeText={setVerificationCode}
+                    placeholder="Enter code"
+                    autoCapitalize="none"
+                    keyboardType="number-pad"
+                    autoComplete="one-time-code"
+                    error={
+                      errors?.fields?.code?.message ?? localError ?? undefined
+                    }
+                  />
                   <Pressable
-                    onPress={() => setPasswordVisible((v) => !v)}
-                    hitSlop={8}
+                    style={s.secondaryButton}
+                    onPress={handleResendCode}
+                    disabled={isFetching}
+                    accessibilityRole="button"
+                    accessibilityLabel="Resend verification code"
                   >
-                    <Ionicons
-                      name={passwordVisible ? 'eye-off-outline' : 'eye-outline'}
-                      size={20}
-                      color="rgba(8,17,38,0.4)"
-                    />
+                    <Text style={s.secondaryButtonText}>Resend code</Text>
                   </Pressable>
-                }
-              />
+                </>
+              )}
+
               <Pressable
                 style={[
                   s.button,
-                  (!email || !password || isFetching) && s.buttonDisabled,
+                  ((verificationStep === 'credentials' &&
+                    (!email || !password)) ||
+                    (verificationStep === 'verify' &&
+                      !verificationCode.trim()) ||
+                    isFetching) &&
+                    s.buttonDisabled,
                 ]}
-                onPress={handleSignIn}
-                disabled={!email || !password || isFetching}
+                onPress={handlePrimaryAction}
+                disabled={
+                  (verificationStep === 'credentials' &&
+                    (!email || !password)) ||
+                  (verificationStep === 'verify' && !verificationCode.trim()) ||
+                  isFetching
+                }
               >
                 <Text style={s.buttonText}>{signInButtonLabel}</Text>
               </Pressable>
             </View>
           </View>
-          <View style={s.linkRow}>
-            <Text style={s.linkCopy}>New to Recurly?</Text>
-            <Link href="/(auth)/sign-up">
-              <Text style={s.link}>Create an account</Text>
-            </Link>
-          </View>
+          {verificationStep === 'credentials' ? (
+            <View style={s.linkRow}>
+              <Text style={s.linkCopy}>New to Recurly?</Text>
+              <Link href="/(auth)/sign-up">
+                <Text style={s.link}>Create an account</Text>
+              </Link>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => {
+                setVerificationStep('credentials');
+                setVerificationCode('');
+                setVerificationStrategy(null);
+                setVerificationPrompt('');
+                setLocalError(null);
+              }}
+              style={s.linkRow}
+            >
+              <Text style={s.link}>Back to sign in</Text>
+            </Pressable>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -173,6 +331,19 @@ const s = StyleSheet.create({
   },
   buttonDisabled: { backgroundColor: 'rgba(234, 122, 83, 0.45)' },
   buttonText: { fontSize: 16, fontWeight: '700', color: colors.primary },
+  secondaryButton: {
+    alignItems: 'center',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(234, 122, 83, 0.3)',
+    backgroundColor: 'rgba(234, 122, 83, 0.1)',
+    paddingVertical: 12,
+  },
+  secondaryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.accent,
+  },
   linkRow: {
     marginTop: 20,
     flexDirection: 'row',

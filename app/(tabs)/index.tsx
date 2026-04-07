@@ -1,13 +1,11 @@
+import CreateSubscriptionModal from '@/components/CreateSubscriptionModal';
 import ListHeading from '@/components/ListHeading';
 import SubscriptionCard from '@/components/SubscriptionCard';
 import UpcomingSubscriptionCard from '@/components/UpcomingSubscriptionCard';
-import {
-  HOME_BALANCE,
-  HOME_SUBSCRIPTIONS,
-  UPCOMING_SUBSCRIPTIONS,
-} from '@/constants/data';
+import { HOME_BALANCE, UPCOMING_SUBSCRIPTIONS } from '@/constants/data';
 import { icons } from '@/constants/icons';
 import { colors } from '@/constants/theme';
+import { addSubscription, useSubscriptions } from '@/lib/subscriptions-store';
 import { formatCurrency } from '@/lib/utils';
 import { useUser } from '@clerk/expo';
 import dayjs from 'dayjs';
@@ -26,7 +24,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function Home() {
   const router = useRouter();
   const { user } = useUser();
+  const subscriptions = useSubscriptions();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
 
   const displayName =
     user?.firstName ??
@@ -37,7 +37,7 @@ export default function Home() {
   return (
     <SafeAreaView style={s.safe}>
       <FlatList
-        data={HOME_SUBSCRIPTIONS}
+        data={subscriptions}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.list}
@@ -65,7 +65,12 @@ export default function Home() {
                   {displayName}
                 </Text>
               </Pressable>
-              <Pressable onPress={() => {}} hitSlop={8}>
+              <Pressable
+                onPress={() => setIsCreateModalVisible(true)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Create new subscription"
+              >
                 <Image
                   source={icons.add}
                   style={s.addIcon}
@@ -98,7 +103,10 @@ export default function Home() {
             />
 
             {/* All subscriptions heading */}
-            <ListHeading title="Your Subscriptions" />
+            <ListHeading
+              title="Your Subscriptions"
+              onViewAllPress={() => router.push('/(tabs)/Subscriptions')}
+            />
           </>
         }
         renderItem={({ item }) => (
@@ -112,6 +120,15 @@ export default function Home() {
             />
           </View>
         )}
+      />
+
+      <CreateSubscriptionModal
+        visible={isCreateModalVisible}
+        onClose={() => setIsCreateModalVisible(false)}
+        onCreate={(newSubscription) => {
+          addSubscription(newSubscription);
+          setExpandedId(newSubscription.id);
+        }}
       />
     </SafeAreaView>
   );

@@ -1,13 +1,23 @@
 import { colors } from '@/constants/theme';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function ListHeading({ title }: ListHeadingProps) {
+export default function ListHeading({
+  title,
+  onViewAllPress,
+}: ListHeadingProps) {
   return (
     <View style={s.head}>
       <Text style={s.title}>{title}</Text>
-      <TouchableOpacity style={s.action} onPress={() => {}}>
-        <Text style={s.actionText}>View All</Text>
-      </TouchableOpacity>
+      {!!onViewAllPress && (
+        <TouchableOpacity
+          style={s.action}
+          onPress={onViewAllPress}
+          accessibilityRole="button"
+          accessibilityLabel={`View all ${title}`}
+        >
+          <Text style={s.actionText}>View All</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -23,7 +33,7 @@ const s = StyleSheet.create({
   action: {
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.2)',
+    borderColor: colors.border,
     paddingHorizontal: 16,
     paddingVertical: 4,
   },
