@@ -26,6 +26,7 @@ export default function SignUp() {
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [code, setCode] = useState('');
   const [passwordMatchError, setPasswordMatchError] = useState('');
+  const [verificationError, setVerificationError] = useState('');
 
   const isFetching = fetchStatus === 'fetching';
   const createAccountButtonLabel = isFetching ? 'Loading...' : 'Create account';
@@ -55,16 +56,29 @@ export default function SignUp() {
       return;
     }
     setPasswordMatchError('');
+    setVerificationError('');
     const { error } = await signUp.password({ emailAddress: email, password });
     if (error) return;
     await signUp.verifications.sendEmailCode();
   };
 
   const handleVerify = async () => {
-    await signUp.verifications.verifyEmailCode({ code });
+    setVerificationError('');
+    const { error } = await signUp.verifications.verifyEmailCode({ code });
+    if (error) {
+      setVerificationError(
+        errors?.fields?.code?.message ??
+          'Verification failed. Check the code and try again.'
+      );
+      return;
+    }
+
     if (signUp.status === 'complete') {
       await signUp.finalize();
+      return;
     }
+
+    setVerificationError('Verification is incomplete. Please try again.');
   };
 
   const isVerifying =
@@ -100,11 +114,14 @@ export default function SignUp() {
                 <AuthField
                   label="Verification Code"
                   value={code}
-                  onChangeText={setCode}
+                  onChangeText={(val) => {
+                    setCode(val);
+                    if (verificationError) setVerificationError('');
+                  }}
                   placeholder="6-digit code"
                   keyboardType="number-pad"
                   autoComplete="one-time-code"
-                  error={errors?.fields?.code?.message}
+                  error={errors?.fields?.code?.message ?? verificationError}
                 />
                 <Pressable
                   style={[s.button, (!code || isFetching) && s.buttonDisabled]}
@@ -115,7 +132,16 @@ export default function SignUp() {
                 </Pressable>
                 <Pressable
                   style={s.secondaryButton}
-                  onPress={() => signUp.verifications.sendEmailCode()}
+                  onPress={async () => {
+                    setVerificationError('');
+                    const { error } =
+                      await signUp.verifications.sendEmailCode();
+                    if (error) {
+                      setVerificationError(
+                        'Could not resend code right now. Please try again.'
+                      );
+                    }
+                  }}
                   disabled={isFetching}
                 >
                   <Text style={s.secondaryButtonText}>{resendButtonLabel}</Text>

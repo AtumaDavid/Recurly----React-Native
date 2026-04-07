@@ -23,8 +23,9 @@ export default function AuthField({
   return (
     <View style={s.field}>
       <Text style={s.label}>{label}</Text>
-      <View style={{ position: 'relative' }}>
+      <View style={s.container}>
         <TextInput
+          accessibilityLabel={label}
           style={[
             s.input,
             !!error && s.inputError,
@@ -34,18 +35,7 @@ export default function AuthField({
           {...inputProps}
         />
         {rightElement != null && (
-          <View
-            style={{
-              position: 'absolute',
-              right: 16,
-              top: 0,
-              bottom: 0,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            {rightElement}
-          </View>
+          <View style={s.rightWrapper}>{rightElement}</View>
         )}
       </View>
       {!!error && <Text style={s.error}>{error}</Text>}
@@ -56,6 +46,7 @@ export default function AuthField({
 const s = StyleSheet.create({
   field: { gap: 8 },
   label: { fontSize: 14, fontWeight: '600', color: colors.primary },
+  container: { position: 'relative' },
   input: {
     borderRadius: 16,
     borderWidth: 1,
@@ -66,6 +57,14 @@ const s = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: colors.primary,
+  },
+  rightWrapper: {
+    position: 'absolute',
+    right: 16,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   inputError: { borderColor: colors.destructive },
   error: { fontSize: 12, fontWeight: '500', color: colors.destructive },

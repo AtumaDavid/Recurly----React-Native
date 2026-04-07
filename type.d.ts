@@ -16,6 +16,7 @@ declare global {
     id: string;
     icon: ImageSourcePropType;
     name: string;
+    frequency?: string;
     plan?: string;
     category?: string;
     paymentMethod?: string;
@@ -23,7 +24,7 @@ declare global {
     startDate?: string;
     price: number;
     currency?: string;
-    billing: string;
+    billing: 'Monthly' | 'Yearly';
     renewalDate?: string;
     color?: string;
   }
@@ -51,6 +52,7 @@ declare global {
 
   interface ListHeadingProps {
     title: string;
+    onViewAllPress?: () => void;
   }
 }
 
