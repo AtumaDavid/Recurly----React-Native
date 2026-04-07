@@ -29,7 +29,10 @@ export default function Home() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const displayName =
-    user?.firstName ?? user?.emailAddresses?.[0]?.emailAddress ?? 'there';
+    user?.firstName ??
+    user?.primaryEmailAddress?.emailAddress ??
+    user?.emailAddresses?.[0]?.emailAddress ??
+    'there';
 
   return (
     <SafeAreaView style={s.safe}>

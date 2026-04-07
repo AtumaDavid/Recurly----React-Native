@@ -1,9 +1,18 @@
 import { colors } from '@/constants/theme';
 import { useAuth, useUser } from '@clerk/expo';
-import { useRouter } from 'expo-router';
 import React from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 type SettingsRowProps = {
   label: string;
@@ -16,6 +25,8 @@ function SettingsRow({ label, onPress, destructive }: SettingsRowProps) {
     <Pressable
       style={({ pressed }) => [s.row, pressed && s.rowPressed]}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
     >
       <Text style={[s.rowLabel, destructive && s.destructiveLabel]}>
         {label}
@@ -26,11 +37,14 @@ function SettingsRow({ label, onPress, destructive }: SettingsRowProps) {
 }
 
 export default function Settings() {
-  const router = useRouter();
   const { user } = useUser();
   const { signOut } = useAuth();
+  const insets = useSafeAreaInsets();
 
-  const email = user?.emailAddresses?.[0]?.emailAddress ?? '';
+  const email =
+    user?.primaryEmailAddress?.emailAddress ??
+    user?.emailAddresses?.[0]?.emailAddress ??
+    '';
   const name =
     [user?.firstName, user?.lastName].filter(Boolean).join(' ') || email;
 
@@ -43,7 +57,6 @@ export default function Settings() {
         onPress: async () => {
           try {
             await signOut();
-            router.replace('/(auth)/sign-in');
           } catch {
             Alert.alert(
               'Sign Out Failed',
@@ -57,63 +70,74 @@ export default function Settings() {
 
   return (
     <SafeAreaView style={s.safe}>
-      <Text style={s.heading}>Settings</Text>
+      <ScrollView
+        contentContainerStyle={[
+          s.content,
+          { paddingBottom: insets.bottom + 28 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={s.heading}>Settings</Text>
 
-      {/* Account */}
-      <View style={s.profileCard}>
-        <View style={s.avatar}>
-          <Text style={s.avatarLetter}>{(name[0] ?? '?').toUpperCase()}</Text>
+        {/* Account */}
+        <View style={s.profileCard}>
+          <View style={s.avatar}>
+            <Text style={s.avatarLetter}>{(name[0] ?? '?').toUpperCase()}</Text>
+          </View>
+          <View>
+            {!!name && name !== email && (
+              <Text style={s.profileName}>{name}</Text>
+            )}
+            <Text style={s.profileEmail}>{email}</Text>
+          </View>
         </View>
-        <View>
-          {!!name && name !== email && (
-            <Text style={s.profileName}>{name}</Text>
-          )}
-          <Text style={s.profileEmail}>{email}</Text>
+
+        {/* Preferences */}
+        <Text style={s.sectionLabel}>Preferences</Text>
+        <View style={s.section}>
+          <SettingsRow
+            label="Notifications"
+            onPress={() =>
+              Alert.alert('Coming soon', 'Notification settings coming soon.')
+            }
+          />
+          <View style={s.divider} />
+          <SettingsRow
+            label="Currency"
+            onPress={() =>
+              Alert.alert('Coming soon', 'Currency settings coming soon.')
+            }
+          />
         </View>
-      </View>
 
-      {/* Preferences */}
-      <Text style={s.sectionLabel}>Preferences</Text>
-      <View style={s.section}>
-        <SettingsRow
-          label="Notifications"
-          onPress={() =>
-            Alert.alert('Coming soon', 'Notification settings coming soon.')
-          }
-        />
-        <View style={s.divider} />
-        <SettingsRow
-          label="Currency"
-          onPress={() =>
-            Alert.alert('Coming soon', 'Currency settings coming soon.')
-          }
-        />
-      </View>
+        {/* Support */}
+        <Text style={s.sectionLabel}>Support</Text>
+        <View style={s.section}>
+          <SettingsRow
+            label="Privacy Policy"
+            onPress={() => Alert.alert('Privacy Policy', 'Coming soon.')}
+          />
+          <View style={s.divider} />
+          <SettingsRow
+            label="Terms of Service"
+            onPress={() => Alert.alert('Terms of Service', 'Coming soon.')}
+          />
+        </View>
 
-      {/* Support */}
-      <Text style={s.sectionLabel}>Support</Text>
-      <View style={s.section}>
-        <SettingsRow
-          label="Privacy Policy"
-          onPress={() => Alert.alert('Privacy Policy', 'Coming soon.')}
-        />
-        <View style={s.divider} />
-        <SettingsRow
-          label="Terms of Service"
-          onPress={() => Alert.alert('Terms of Service', 'Coming soon.')}
-        />
-      </View>
-
-      {/* Danger zone */}
-      <View style={s.section}>
-        <SettingsRow label="Sign Out" onPress={handleSignOut} destructive />
-      </View>
+        {/* Danger zone */}
+        <View style={s.section}>
+          <SettingsRow label="Sign Out" onPress={handleSignOut} destructive />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background, paddingHorizontal: 20 },
+  safe: { flex: 1, backgroundColor: colors.background },
+  content: {
+    paddingHorizontal: 20,
+  },
   heading: {
     fontSize: 22,
     fontWeight: '700',
