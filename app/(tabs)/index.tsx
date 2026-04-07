@@ -9,15 +9,13 @@ import {
 import { icons } from '@/constants/icons';
 import { colors } from '@/constants/theme';
 import { formatCurrency } from '@/lib/utils';
-import { useAuth, useUser } from '@clerk/expo';
+import { useUser } from '@clerk/expo';
 import dayjs from 'dayjs';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  Alert,
   FlatList,
   Image,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -28,39 +26,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function Home() {
   const router = useRouter();
   const { user } = useUser();
-  const { signOut } = useAuth();
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [dropdownVisible, setDropdownVisible] = useState(false);
 
   const displayName =
-    user?.firstName ?? user?.emailAddresses?.[0]?.emailAddress ?? 'there';
-
-  const handleSignOut = async () => {
-    setDropdownVisible(false);
-    try {
-      await signOut();
-      router.replace('/(auth)/sign-in');
-    } catch (error) {
-      console.error('Sign out failed:', error);
-      Alert.alert(
-        'Sign Out Failed',
-        'Unable to sign out. Please check your connection and try again.'
-      );
-    }
-  };
-
-  useEffect(() => {
-    if (!dropdownVisible || Platform.OS !== 'web') return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setDropdownVisible(false);
-      }
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [dropdownVisible]);
+    user?.firstName ??
+    user?.primaryEmailAddress?.emailAddress ??
+    user?.emailAddresses?.[0]?.emailAddress ??
+    'there';
 
   return (
     <SafeAreaView style={s.safe}>
@@ -75,10 +47,10 @@ export default function Home() {
             <View style={s.header}>
               <Pressable
                 style={s.userRow}
-                onPress={() => setDropdownVisible((v) => !v)}
+                onPress={() => router.push('/(tabs)/Settings')}
                 hitSlop={8}
                 accessibilityRole="button"
-                accessibilityLabel="Open profile menu"
+                accessibilityLabel="Go to settings"
               >
                 {user?.imageUrl ? (
                   <Image source={{ uri: user.imageUrl }} style={s.avatar} />
@@ -101,34 +73,6 @@ export default function Home() {
                 />
               </Pressable>
             </View>
-
-            {/* Invisible full-screen backdrop */}
-            {dropdownVisible && (
-              <Pressable
-                style={s.backdrop}
-                onPress={() => setDropdownVisible(false)}
-                accessibilityRole="button"
-                accessibilityLabel="Close profile menu"
-              />
-            )}
-
-            {/* Profile dropdown */}
-            {dropdownVisible && (
-              <View
-                style={s.dropdown}
-                accessibilityRole="menu"
-                accessibilityLabel="Profile menu"
-              >
-                <Pressable
-                  style={s.dropdownItem}
-                  onPress={handleSignOut}
-                  accessibilityRole="menuitem"
-                  accessibilityLabel="Sign out"
-                >
-                  <Text style={s.dropdownItemText}>Sign Out</Text>
-                </Pressable>
-              </View>
-            )}
 
             {/* Balance card */}
             <View style={s.balanceCard}>
@@ -225,35 +169,4 @@ const s = StyleSheet.create({
   },
   balanceAmount: { fontSize: 36, fontWeight: '800', color: '#ffffff' },
   balanceDate: { fontSize: 20, fontWeight: '500', color: '#ffffff' },
-  dropdown: {
-    position: 'relative',
-    zIndex: 2,
-    alignSelf: 'flex-start',
-    marginTop: 4,
-    marginBottom: 8,
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-    minWidth: 160,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  dropdownItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  dropdownItemText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.destructive,
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1,
-  },
 });
